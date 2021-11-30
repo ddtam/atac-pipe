@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+
 if (!require(BiocManager)) install.packages("BiocManager")
 if (!require(tidyverse)) BiocManager::install("tidyverse")
 if (!require(Seurat)) BiocManager::install("Seurat")
