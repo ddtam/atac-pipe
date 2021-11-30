@@ -10,12 +10,16 @@ metadata = pd.read_csv(
 
 patient_ids = metadata.iloc[:, 0]
 
-rule test:
+rule all:
     input:
         expand(
-            "out/classifier/{patient_id}_classification.tsv",
+            "final/{patient_id}/{patient_id}_seurat_w_classification.rds",
             patient_id=patient_ids
         )
+
+rule clean:
+    shell:
+        "rm -rf out final cache/samples/*_w_chromvar.rds"
 
 rule make_assay:
     input:
@@ -49,6 +53,6 @@ rule integrate_classifier_results:
         rules.run_chromvar.output.chromvar_output,
         rules.run_classifier.output.classifier_output
     output:
-        rds_out = "cache/samples/{patient_id}_seurat_w_classification.rds"
+        rds_out = "final/{patient_id}/{patient_id}_seurat_w_classification.rds"
     script:
         "scripts/integrate_classifier_results.R"
