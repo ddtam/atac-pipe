@@ -29,6 +29,7 @@ This pipeline depends on system, R, and python packages. The installation instru
 * `motifmatchr`
 * `chromVAR`
 * `chromVARmotifs`
+* `biovizBase`
 * `EnsDb.Hsapiens.v75`
 * `BSgenome.Hsapiens.UCSC.hg19`
 
@@ -74,7 +75,7 @@ From here, we will use the built-in package manager to install some basic librar
 
 ```
 >>> install.packages(c('tidyverse', 'DT', 'devtools', 'BiocManager'))
->>> BiocManager::install(c('motifmatchr', 'Seurat', 'Signac', 'chromVAR', 'EnsDb.Hsapiens.v75', 'BSgenome.Hsapiens.UCSC.hg19'))
+>>> BiocManager::install(c('motifmatchr', 'Seurat', 'Signac', 'chromVAR', 'biovizBase', 'EnsDb.Hsapiens.v75', 'BSgenome.Hsapiens.UCSC.hg19'))
 ```
 
 Finally, we need to install a dataset that is available only on github by the Greenleaf group using the `devtools` library.
@@ -119,7 +120,15 @@ Later columns can be used to store other sample metadata as desired that are per
 
 ### 5. Pipeline execution
 
-Once dependencies have been acquired, the pipeline has been downloaded locally and loaded with your data, the pipeline is ready to be run. From the root of your working directory, execute `snakemake`.
+Once dependencies have been acquired, the pipeline has been downloaded locally and loaded with your data, the pipeline is ready to be run. 
+
+> ⚠️ NOTE: due to the sensitivity of the data, the first step of this pipeline was already executed and intermediate files are included inside `cache/samples`. **To ensure that the pipeline recognizes these as useable intermediate files, update their timestamps:**
+> ```
+> $ touch cache/samples/*
+> ```
+> This step is obviously not required for the analysis of real data. More information regarding these intermediaries [here](#input).
+
+From the root of your working directory, execute `snakemake` to start the pipeline.
 
 ```
 $ snakemake --cores 4
@@ -165,7 +174,9 @@ samples
     └── singlecell.csv
 
 ```
-⚠️ **NOTE:** due to this data being sensitive, the files above are present but empty. The first step of the pipeline has been executed (summarised in DAG) and the intermediary files have been significantly downsampled so as to anonymize the data and improve testing speed. **The pipeline is executable as-is from the intermediate output of `make_assay` in `cache/samples/*_seurat_obj.rds`.**
+> ⚠️ **NOTE:** due to this data being sensitive, the files above are present but empty. The first step of the pipeline has been executed (summarised in DAG) and the intermediary files have been significantly downsampled so as to anonymize the data and improve testing speed. **The pipeline is executable from the intermediate output of `make_assay` in `cache/samples/*_seurat_obj.rds`.**
+> >
+>Depending on the speed of your internet, the `git clone` process will not deterministically download the intermediate files _after_ the raw data files. To ensure snakemake recognizes these intermediates, their timestamps must be later than the timestamps of inputs to their generation.
 
 ## Output
 
