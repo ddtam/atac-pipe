@@ -12,13 +12,18 @@ The aim of this workflow is to **pre-process and label single-cell ATAC-seq libr
 
 ### Package Dependencies
 
-This pipeline depends on both R and python packages. The installation instructions for each are presented separately under [Usage](#usage).
+This pipeline depends on system, R, and python packages. The installation instructions for each are presented separately under [Usage](#usage).
+
+#### System
+
+* `pandoc`
 
 #### R
 
 * `R >= 4.1.0`
 * `BiocManager >= 3.14`
 * `tidyverse`
+* `DT`
 * `Seurat`
 * `Signac`
 * `motifmatchr`
@@ -37,6 +42,12 @@ This pipeline depends on both R and python packages. The installation instructio
 * `lightgbm`
 
 ## Usage
+
+### 0. Installation of system dependencies
+
+A number of system libraries and dependencies are required for proper library function. Depending on your operating system, the installation procedure will vary. Below are links to installation documentation for the required dependencies.
+
+* [`pandoc`](https://pandoc.org/installing.html)
 
 ### 1. Installation of `conda` and Python dependencies
 
@@ -62,7 +73,7 @@ $ R
 From here, we will use the built-in package manager to install some basic libraries as well as `BiocManager` which will give us access to the Bioconductor world of bioinformatics packages.
 
 ```
->>> install.packages(c('tidyverse', 'devtools', 'BiocManager'))
+>>> install.packages(c('tidyverse', 'DT', 'devtools', 'BiocManager'))
 >>> BiocManager::install(c('motifmatchr', 'Seurat', 'Signac', 'chromVAR', 'EnsDb.Hsapiens.v75', 'BSgenome.Hsapiens.UCSC.hg19'))
 ```
 
@@ -118,6 +129,8 @@ This will run `snakemake` on 4 cores for parallel processing of the 4 sample dat
 
 ### Workflow Overview
 
+Example execution order for 2 input samples.
+
 ![DAG representation of snakemake workflow.](dag.svg)
 
 ## Input
@@ -152,10 +165,23 @@ samples
     └── singlecell.csv
 
 ```
-⚠️ **NOTE:** due to this data being sensitive, the files above are present but empty. The first step of the pipeline has been executed (summarised in DAG) and the intermediary files have been significantly downsampled so as to anonymize the data and improve testing speed. **The pipeline is executable as-is from the intermediate output from `make_assay` in `cache/samples/*_seurat_obj.rds`.**
+⚠️ **NOTE:** due to this data being sensitive, the files above are present but empty. The first step of the pipeline has been executed (summarised in DAG) and the intermediary files have been significantly downsampled so as to anonymize the data and improve testing speed. **The pipeline is executable as-is from the intermediate output of `make_assay` in `cache/samples/*_seurat_obj.rds`.**
 
 ## Output
 
-Final outputs from this pipeline can be found within `final/`
+All final outputs from this pipeline can be found within `final/`.
 
-The main outputs of this pipeline are (1) a preliminary report knit from an .Rmd document summarizing the classification results and (2) the `seurat` data object stored as an `.rds` which can be conveniently imported in later analyses.
+The main results of this pipeline are (1) a preliminary `.html` report summarizing the classification results and (2) the `seurat` data objects stored as `.rds` files which can be conveniently imported in later analyses.
+
+```
+final
+├── D48__P221
+│   └── D48__P221_seurat_w_classification.rds
+├── D48__R814
+│   └── D48__R814_seurat_w_classification.rds
+├── D48__R923
+│   └── D48__R923_seurat_w_classification.rds
+├── D48__Z177
+│   └── D48__Z177_seurat_w_classification.rds
+└── summary_report.html
+```

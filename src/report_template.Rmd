@@ -71,7 +71,11 @@ plot_metadata <- function(seurat_obj, lib_name, metadata_colname,
 
     p <- ggplot(embeddings.df) +
         labs(title = paste0("UMAP Clustering - ", lib_name)) +
-        geom_point(aes(x = !!dim1.sym, y = !!dim2.sym, color = !!metadata_colname.sym)) +
+        geom_point(aes(
+            x = !!dim1.sym,
+            y = !!dim2.sym,
+            color = !!metadata_colname.sym
+        )) +
         theme(legend.position = legend_pos)
 
     if (mark_centroid) {
@@ -99,8 +103,6 @@ plot_metadata <- function(seurat_obj, lib_name, metadata_colname,
 draw_dt_with_header <- function(s_obj, label) {
     mat <- as.matrix(s_obj[["classification"]]@counts) %>%
         t()
-
-    brks <- quantile(mat, probs = seq(.05, .95, .05), na.rm = TRUE)
 
     return(list(
         htmltools::tags$h3(label),
