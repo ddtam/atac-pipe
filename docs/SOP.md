@@ -88,7 +88,7 @@ $ git clone https://github.com/ddtam/atac-pipe.git
 $ cd atac-pipe
 ```
 
-### 3. Uploading data and generating metadata
+### 4. Uploading data and generating metadata
 
 Within this working directory, the data to be analysed should be placed within `data/` **in individual directories with the _same identifiers_ as in the sample metadata file.** The sample metadata file is a simple `.tsv` formatted file that should be placed at `data/metadata.tsv`.
 
@@ -106,7 +106,7 @@ The first column of the metadata must be a unique library identifier that corres
 
 Later columns can be used to store other sample metadata as desired that are pertinent to your own downstream analyses.
 
-### 4. Pipeline execution
+### 5. Pipeline execution
 
 Once dependencies have been acquired, the pipeline has been downloaded locally and loaded with your data, the pipeline is ready to be run. From the root of your working directory, execute `snakemake`.
 
