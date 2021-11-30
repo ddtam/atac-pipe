@@ -1,0 +1,151 @@
+---
+title: "Classification Summary Report"
+date: "Compiled on `r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    code_folding: "hide"
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+params:
+    rds_paths: paths
+toc_depth: 3
+number_sections: true
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(DT)
+library(Seurat)
+library(Signac)
+```
+
+Defining helper functions...
+
+```{r define_helpers}
+celltype_colors <-
+    c(
+        "HSC/MPP" = "#173E22",
+        "LMPP"    = "#3BBDA0",
+        "CMP"     = "#FEBB7F",
+        "GMP"     = "#FE9F45",
+        "MEP"     = "#FD4B4B",
+        "CLP"     = "#88DBE4",
+        "pDC"     = "#AE8EC4",
+        "mono"    = "#FD632F"
+    )
+
+get_centroids <- function(df) {
+    group.sym <- sym(names(df)[1])
+
+    map(unique(df[, 1]) %>% set_names(.), function(group) {
+        data_in_group <- filter(df, !!group.sym == group)
+
+        x_avg <- mean(data_in_group[, 2])
+        y_avg <- mean(data_in_group[, 3])
+
+        tibble(x = x_avg, y = y_avg)
+    }) %>%
+        bind_rows(.id = "group")
+}
+
+plot_metadata <- function(seurat_obj, lib_name, metadata_colname,
+                          colors = celltype_colors,
+                          mark_centroid = T,
+                          scale = "categorical", # or continuous
+                          reduction_name = "UMAP", legend_pos = "none") {
+    metadata_colname.sym <- sym(metadata_colname)
+
+    reduction_name_clean <- str_remove_all(reduction_name, "_")
+    dim1.sym <- sym(paste0(reduction_name_clean, "_1"))
+    dim2.sym <- sym(paste0(reduction_name_clean, "_2"))
+
+    embeddings.df <- FetchData(
+        seurat_obj,
+        c(
+            metadata_colname,
+            paste0(reduction_name_clean, "_1"),
+            paste0(reduction_name_clean, "_2")
+        )
+    )
+
+    p <- ggplot(embeddings.df) +
+        labs(title = paste0("UMAP Clustering - ", lib_name)) +
+        geom_point(aes(x = !!dim1.sym, y = !!dim2.sym, color = !!metadata_colname.sym)) +
+        theme(legend.position = legend_pos)
+
+    if (mark_centroid) {
+        centroids <- get_centroids(embeddings.df)
+
+        p <- p +
+            geom_label(
+                data = centroids,
+                aes(label = group, x = x, y = y),
+                fontface = "bold", size = 8, alpha = 0.5
+            )
+    }
+
+    if (scale == "categorical") {
+        p <- p +
+            scale_color_manual(values = colors)
+    } else if (scale == "continuous") {
+        p <- p +
+            scale_color_gradientn(colors = colors)
+    }
+
+    return(p)
+}
+
+draw_dt_with_header <- function(s_obj, label) {
+    mat <- as.matrix(s_obj[["classification"]]@counts) %>%
+        t()
+
+    brks <- quantile(mat, probs = seq(.05, .95, .05), na.rm = TRUE)
+
+    return(list(
+        htmltools::tags$h3(label),
+        DT::datatable(round(mat, 3),
+            rownames = TRUE, filter = "top",
+            options = list(pageLength = 5, scrollX = TRUE)
+        )
+    ))
+}
+```
+
+Importing data...
+
+```{r import_data}
+seurat_objs <- imap(
+    params$rds_paths %>%
+        set_names(str_remove(., ".*/") %>% str_remove("_seurat.*")),
+    function(path, lib_id) {
+        read_rds(paste0("../", path))
+    }
+)
+```
+
+## Classification Probability Tables
+
+```{r print_proba_matrix, results='asis'}
+htmltools::tagList(
+    imap(seurat_objs, draw_dt_with_header)
+)
+```
+
+## UMAP Projection on Accessibility
+
+```{r plot_umap}
+iwalk(
+    seurat_objs,
+    function(seurat_obj, lib_id) {
+        p <- plot_metadata(seurat_obj, lib_id, "predicted_celltype")
+        print(p)
+    }
+)
+```
+
+## SessionInfo
+
+```{r session_info}
+sessionInfo()
+```

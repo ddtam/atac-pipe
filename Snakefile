@@ -12,10 +12,8 @@ patient_ids = metadata.iloc[:, 0]
 rule all:
     """Dummy rule to generate all outputs for samples in metadata."""
     input:
-        expand(
-            "final/{patient_id}/{patient_id}_seurat_w_classification.rds",
-            patient_id=patient_ids
-        )
+        "final/summary_report.html"
+        
 
 rule clean:
     """Convenience rule for cleaning up run."""
@@ -25,21 +23,30 @@ rule clean:
 rule make_assay:
     """Import 10X output into Seurat data object and export to disk."""
     input:
-        h5="data/samples/{patient_id}/filtered_peak_bc_matrix.h5",
-        barcodes="data/samples/{patient_id}/singlecell.csv",
-        fragments="data/samples/{patient_id}/fragments.tsv.gz"
+        h5        = "data/samples/{patient_id}/filtered_peak_bc_matrix.h5",
+        barcodes  = "data/samples/{patient_id}/singlecell.csv",
+        fragments = "data/samples/{patient_id}/fragments.tsv.gz"
     output:
-        seurat_rds="cache/samples/{patient_id}_seurat_obj.rds"
+        seurat_rds = "cache/samples/{patient_id}_seurat_obj.rds"
     shell:
         "scripts/make_assay.R {input} {output}"
+
+rule calculate_reductions:
+    """Run dimension reduction on assays to get UMAP coordinates."""
+    input:
+        rules.make_assay.output.seurat_rds
+    output:
+        rds_out = temp("cache/samples/{patient_id}_seurat_w_reduction.rds"),
+    shell:
+        "scripts/calculate_reductions.R {input} {output}"
 
 rule run_chromvar:
     """Calculate gene activity with chromVAR and write to file."""
     input:
-        rules.make_assay.output.seurat_rds
+        rules.calculate_reductions.output.rds_out
     output:
         rds_out = temp("cache/samples/{patient_id}_seurat_w_chromvar.rds"),
-        chromvar_output="out/chromVAR/{patient_id}_tf_accessibility.tsv.gz"
+        chromvar_output = "out/chromVAR/{patient_id}_tf_accessibility.tsv.gz"
     shell:
         "scripts/run_chromvar.R {input} {output}"
 
@@ -48,7 +55,7 @@ rule run_classifier:
     input:
         rules.run_chromvar.output.chromvar_output
     output:
-        classifier_output="out/classifier/{patient_id}_classification.tsv"
+        classifier_output = "out/classifier/{patient_id}_classification.tsv"
     shell:
         "scripts/run_classifier.py {input} {output}"
 
@@ -61,3 +68,14 @@ rule integrate_classifier_results:
         rds_out = "final/{patient_id}/{patient_id}_seurat_w_classification.rds"
     shell:
         "scripts/integrate_classifier_results.R {input} {output}"
+
+rule generate_report:
+    input:
+        expand(
+            "final/{patient_id}/{patient_id}_seurat_w_classification.rds",
+            patient_id=patient_ids
+        )
+    output:
+        html = "final/summary_report.html"
+    shell:
+        "scripts/generate_report.R {output} {input}"
