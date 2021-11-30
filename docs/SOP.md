@@ -186,4 +186,4 @@ final
 └── summary_report.html
 ```
 
-The expected output report resulting from successfully running the included test data can be viewed [here](summary_report.html).
+The expected `.html` report resulting from successfully running the included test data can be downloaded [here](summary_report.html) and viewed in a web browser.
