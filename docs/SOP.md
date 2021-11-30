@@ -4,7 +4,7 @@
 
 ### What's and Why's
 
-This workflow was created to automate the process of analysing single-cell assays of transpose-accessible chromatin sequencing (scATAC-seq) data and running an in-house cell type machine learning classifier on the outputs. A `snakemake` workflow was used to serve as a reproducible, "self-documenting" pipeline that will be relied upon to process future incoming data that will be generated in the same way as these pilot samples.
+This workflow was created to automate the process of analysing single-cell assays of transpose-accessible chromatin sequencing (scATAC-seq) data and running an under-development cell type machine learning classifier on the outputs. A `snakemake` workflow was used to serve as a reproducible, "self-documenting" pipeline that will be relied upon to process future incoming data that will be generated in the same way as these pilot samples.
 
 ### Aim
 
@@ -122,7 +122,7 @@ This will run `snakemake` on 4 cores for parallel processing of the 4 sample dat
 
 ## Input
 
-This pipeline is intended to be executed on the output of 10X's `cellranger` pipeline, which processes the raw reads of an ATAC-seq experiment into quantified peaks.
+This pipeline is intended to be executed on the output of [10X's `cellranger` pipeline](https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/what-is-cell-ranger), which processes the raw reads of an ATAC-seq experiment into quantified peaks.
 
 Three files are required from this output:
 * `filtered_peak_bc_matrix.h5`
