@@ -185,3 +185,5 @@ final
 │   └── D48__Z177_seurat_w_classification.rds
 └── summary_report.html
 ```
+
+The expected output report resulting from successfully running the included test data can be viewed [here](summary_report.html).
